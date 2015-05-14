@@ -1,5 +1,9 @@
 var App = App || {};
 
+/**
+ * Main Layout
+ * @type {ClassicComponentClass<P>}
+ */
 App.Todo = React.createClass({
   getItems: function() {
     $.ajax({
@@ -17,7 +21,11 @@ App.Todo = React.createClass({
     return {data: []};
   },
   componentDidMount: function() {
+    var self = this;
     this.getItems();
+    $(document).on('todo.delete', function (e, data) {
+      self.setState({data: data});
+    });
   },
   handleTodoSubmit: function (item) {
     var items = this.state.data;
@@ -47,14 +55,15 @@ App.Todo = React.createClass({
   }
 });
 
+/**
+ * List of todos
+ * @type {ClassicComponentClass<P>}
+ */
 App.TodoList = React.createClass({
-  getInitialState: function() {
-    return {data: []};
-  },
   render: function () {
-    var items = this.state.data.map(function (item, index) {
+    var items = this.props.data.map(function (item, index) {
       return (
-        <App.TodoItem title={item.title}></App.TodoItem>
+        <App.TodoItem id={item._id} title={item.title}></App.TodoItem>
       );
     });
     return (
@@ -65,16 +74,38 @@ App.TodoList = React.createClass({
   }
 });
 
+/**
+ * Todo item
+ * @type {ClassicComponentClass<P>}
+ */
 App.TodoItem = React.createClass({
+  clickHandler: function () {
+    $.ajax({
+      url: '/api/items' + '/' + this.props.id,
+      dataType: 'json',
+      type: 'DELETE',
+      success: function(data) {
+        $(document).trigger('todo.delete', [data]);
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
   render: function () {
     return (
       <div>
         {this.props.title}
+        <button type="button" onClick={this.clickHandler}>X</button>
       </div>
     );
   }
 });
 
+/**
+ * Add todo
+ * @type {ClassicComponentClass<P>}
+ */
 App.TodoForm = React.createClass({
   handleSubmit: function (e) {
     e.preventDefault();
