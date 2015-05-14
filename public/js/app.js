@@ -58,7 +58,7 @@ App.TodoList = React.createClass({
       );
     });
     return (
-      <div class="list">
+      <div className="list">
         {items}
       </div>
     );
